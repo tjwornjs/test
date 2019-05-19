@@ -171,7 +171,7 @@ shared nothing architecture로 노드들 사이에 contention이 없으며,  단
   &lt;li&gt;인덱스는 bit set이며 Concise Algorithm를 사용해 압축함 &lt;a href=&quot;http://ricerca.mat.uniroma3.it/users/dipietro/publications/0020-0190.pdf&quot;&gt;link&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-        <pubDate>Sat, 18 May 2019 00:00:00 +0900</pubDate>
+        <pubDate>Sat, 18 May 2019 14:35:33 +0900</pubDate>
         <link>http://localhost:4000/2019-05-18/apache-druid/</link>
         <guid isPermaLink="true">http://localhost:4000/2019-05-18/apache-druid/</guid>
       </item>

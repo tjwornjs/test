@@ -1,6 +1,12 @@
 ---
 title: Apache Druid 논문 정리
 layout: post
+description: 아파치 드루이드 논문 정리
+date: '2019-05-18 14:35:33'
+tags:
+- 논문 정리
+- OLAP
+comments: true
 ---
 
 ### Abstract
