@@ -6,6 +6,132 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Apache Kafka 논문정리</title>
+        <description>&lt;h3 id=&quot;abstract&quot;&gt;Abstract&lt;/h3&gt;
+&lt;p&gt;짧은 시간에 대량의 로그를 수집 및 전송할수 있는 분산 메시징 시스템 &lt;a href=&quot;/assets/docs/kafka.pdf&quot;&gt;논문 링크&lt;/a&gt;  &lt;br /&gt;
+기존에 존재하던 log aggregator, messaging system의 아이디어를 통합하여 온라인 오프라인 메시지 소비가 가능고, yet practical design을 채택해 효율적이고 쉽게 확장가능한 시스템을 개발하였다.&lt;/p&gt;
+
+&lt;h3 id=&quot;introduction&quot;&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;큰 규모의 인테넷 회사에서는 많은 양의 로그가 생성이 되고 이러한 로그는 보통 아래와 같은 정보를 포함한다.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;사용자의 활동 : 좋아요, 클릭, 로그인&lt;/li&gt;
+  &lt;li&gt;메트릭 : 서비스 호출, cpu 사용량, 디스크 사용률&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;전통적으로 로그데이터는 유저의 참여도, 시스템 활용도등을 분석하는 컴포넌트로 사용되어 왔으며, 최근에는 사이트(서비스)에서 직접 사용하는 데이터의 일부가 되었다.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;검색 적합성&lt;/li&gt;
+  &lt;li&gt;추천 서비스&lt;/li&gt;
+  &lt;li&gt;광고 타겟팅 및 보고&lt;/li&gt;
+  &lt;li&gt;보안 프로그램 : 스팸, 데이터 스크래핑&lt;/li&gt;
+  &lt;li&gt;SNS의 사용자 업데이트 등&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;이러한 로그 데이터를 사용하기에는 어려움이 많다.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;데이터 용량
+    &lt;ul&gt;
+      &lt;li&gt;추천, 검색, 광고 서비스에서는 자용자의 클릭 뿐만 아니라 클릭되지 않은 각 페이지의 수십개 항목에 대해서도 데이터가 필요함&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;로그 데이터 수집
+    &lt;ul&gt;
+      &lt;li&gt;지금까지 로그 파일을 수집하는 방법은 주로 서버에서 물리적으로 스크래핑&lt;/li&gt;
+      &lt;li&gt;오프라인 수집용 플랫폼만 존재 : Scribe(facebook), Data Highway(yahoo), Flume(cloudera) 등 오프라인 전송만 지원&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;related-work&quot;&gt;Related Work&lt;/h3&gt;
+&lt;p&gt;기존의 메시징 시스템은 로그 프로세싱에 좋지 못하다.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;로그 처리에 필요없는 다양한 기능들을 제공
+    &lt;ul&gt;
+      &lt;li&gt;실제로 로그처리에서 일부 로그가 유실되는건 큰 문제가 되지 않지만 기존 메시징 시스템은 100% 전송을 보장하기 때문에 시스템의 복잡성만 증가시킴&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;throughput을 고려하지 않고 설계됨
+    &lt;ul&gt;
+      &lt;li&gt;일부 시스템에는 배치 전송이 없다.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;분산 시스템에 대한 고려 부족&lt;/li&gt;
+  &lt;li&gt;메세지가 즉각적으로 소비될 것을 전제로 하기때문에 메모리 크기가 매우 작고 그로 인해 메세지가 많이 쌓일 경우 성능이 하락한다.
+최근 나온 Scribe, Data Highway, Flume등의 오픈소스가 등장했지만 Push 모델이었다. 이러한 문제점을 해결하기 위해 링크드인에서는 Pull 모델의 Kafka를 개발하였다.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Pull 모델 장점&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Consumer가 처리할수 있는 메세지만큼  소비함&lt;/li&gt;
+  &lt;li&gt;처리한 오프셋을 저장하기 때문에 에러 발생시 쉽게 재시작을 할수 있다.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;kafka-architecture-and-design-principles&quot;&gt;Kafka Architecture and Design Principles&lt;/h3&gt;
+&lt;p&gt;카프카 아키텍쳐
+&lt;img src=&quot;/assets/images/kafka/kafka architecture.png&quot; alt=&quot;카프카 아키텍쳐&quot; width=&quot;600&quot; class=&quot;center-image&quot; /&gt;
+카프카 브로커는 여러 노드들로 구성되며 로드 밸런싱을 위해 토픽은 여러 파티션으로 나누어 지게 되며 각 브로커는 하나 또는 여러개의 파티션을 저장한다. 다수의 생성자가 메세지를 전달 다수의 소비자가 메세지를 소비 할수 있다.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;토픽(topic) : 메세지의 타입, DB의 table로 생각하면 될듯&lt;/li&gt;
+  &lt;li&gt;파티션(partition) : 토픽의 데이터를 분산 저장하는 단위. 여러 파티션이 모여 하나의 토픽을 이룬다.&lt;/li&gt;
+  &lt;li&gt;프로듀서(producer) : 메세지를 브로커로 전송하는 프로그램(filebeat, apache server 등등)&lt;/li&gt;
+  &lt;li&gt;브로커(broker) : 카프카 서버, 프로듀서가 전송한 메세지를 저장하고 컨슈머에 메세지를 전송한다.&lt;/li&gt;
+  &lt;li&gt;컨슈머(consumer) : 브로커의 메세지를 소비하는 프로그램.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;efficiency-on-a-single-partition&quot;&gt;Efficiency on a Single Partition&lt;/h3&gt;
+&lt;p&gt;카프카를 효율적인 시스템으로 만들기 위해 아래와 같이 구현함&lt;/p&gt;
+&lt;h4 id=&quot;simple-storage&quot;&gt;Simple storage&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;프로듀서가 메세지를 전송하면 브로커는 마지막 세그먼트 파일에 메세지를 추가해 저장한다.&lt;/li&gt;
+  &lt;li&gt;성능 하락을 막기 위해  설정된 갯수 만큼의 메세지가 들어오거나 일정 시간이 흐른 후 세그먼트 파일을 디스크로 저장한다.
+    &lt;ul&gt;
+      &lt;li&gt;메세지는 디스크에 저장된후 컨슈머에 노출됨&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;전통적인 메시징 시스템과는 다르게 카프카에 저장된 메세지는 명시적인 id가 없이 논리적 오프셋에 의해 처리된다.
+    &lt;ul&gt;
+      &lt;li&gt;메세지 id를 실제 메세지 위치에 매핑하는 인덱스 색인 구조를 유지 할 필요가 없다.&lt;/li&gt;
+      &lt;li&gt;id는 증가하지만 연속적이지는 않다.&lt;/li&gt;
+      &lt;li&gt;다음 메세지 id를 계산하기 위해 현재 메세지 크기를 저장해 둔다&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;컨슈머는 항상 특정 파티션의 메세지를 순차적으로 읽어간다.
+    &lt;ul&gt;
+      &lt;li&gt;브로커에 읽어올 오프셋 및 허용 바이트가 포함된 요청을 보낸다.&lt;/li&gt;
+      &lt;li&gt;오프셋 못록을 확인한 브로커가 적합한 세그먼트 파일을 찾아 해당 오프셋의 데이터를 전송함&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/kafka/kafka storage.png&quot; alt=&quot;카프카 스토리지&quot; width=&quot;600&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;efficient-transfer&quot;&gt;Efficient transfer&lt;/h4&gt;
+&lt;p&gt;카프카는 브로커는 읽어온 데이터를 개싱하지 않고 os의 페이지 캐시를 이용한다.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;java heap, os cache에 이중으로 저장되는걸 막는다.&lt;/li&gt;
+  &lt;li&gt;os에 읽어온 데이터 캐싱되어 있기 때문에 브로커 서버가 재시작시 warm up 시간 단축.&lt;/li&gt;
+  &lt;li&gt;GC 오버헤드가 없다.
+프로듀서, 컨슈머 모두 세그먼트 파일에 순차적으로 접근하며 보통 컨슈머가 프로듀서 보다 살짝 뒤쳐져 있기 때문에 os 캐싱(write through, read-ahead)가 매우 효과적으로 동작함&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;카프카는 멀티 소비가 가능한 시스템이기 때문에 하나의 메세지가 여러번 소비 될때가 있다. 이러한 경우 일반적인 데이터 전송 방식은 아래와 같다.
+&lt;img src=&quot;/assets/images/kafka/kafka copy.gif&quot; alt=&quot;zero-copy x&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;storage에서 읽어서 페이지 캐시에 저장&lt;/li&gt;
+  &lt;li&gt;페이지 캐시 데이터 application buffer에 복사&lt;/li&gt;
+  &lt;li&gt;다시 커널 버퍼로 복사&lt;/li&gt;
+  &lt;li&gt;커널 버퍼 데이터 소켓으로 전송&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;매번 2, 3번의 데이터 복사를 하기 때문에 성능 하락이 생길수 있다. 카프카는 zero-copy 기법을 이용해 2,3번의 복사를 없애고 성능을 향상 시켰다.
+&lt;img src=&quot;/assets/images/kafka/kafka copy x.gif&quot; alt=&quot;zero copy&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sun, 19 May 2019 21:28:29 +0900</pubDate>
+        <link>http://localhost:4000/2019-05-19/apache-kafka/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019-05-19/apache-kafka/</guid>
+      </item>
+    
+      <item>
         <title>Apache Druid 논문 정리</title>
         <description>&lt;h3 id=&quot;abstract&quot;&gt;Abstract&lt;/h3&gt;
 &lt;p&gt;드루이드는 대규모 데이터에 대한 실시간 탐색 및 분석을 위해 설계된 데이터 저장소이며 아래와 같은 특징이 있다. &lt;a href=&quot;/assets/docs/druid.pdf&quot;&gt;논문 링크&lt;/a&gt;&lt;/p&gt;
@@ -44,7 +170,7 @@ open source, distributed, column-oriented, real-time analytical data store를 �
 &lt;p&gt;드루이드는 대용량의 이벤트(로그)를 저장하고 빠르게 탐색 및 분석할수 있도록 개발되었다. (OLAP 처럼)&lt;/p&gt;
 
 &lt;p&gt;샘플 데이터 
-&lt;img src=&quot;/assets/images/druid/druid data table.png&quot; alt=&quot;드루이드 저장 데이터&quot; /&gt;
+&lt;img src=&quot;/assets/images/druid/druid data table.png&quot; alt=&quot;드루이드 저장 데이터&quot; class=&quot;center-image&quot; /&gt;
 드루이드의 데이터는 아래와 같이 3가지로 이루어져 있다.&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;timestamp : 이벤트가 일어난 시간.&lt;/li&gt;
@@ -71,7 +197,7 @@ open source, distributed, column-oriented, real-time analytical data store를 �
 &lt;p&gt;드루이드는 아래와 같이 서로 다른 역할을 하는 노드들로 이루어져 있으며 각 노드들간의 상호작용은 거의 없기때문에 다른 노드가 죽어도 전체 클러스터에 끼치는 영향은 미미하다. &lt;br /&gt;
 드루이드 노드 이외 Kafka(실시간 데이터 입력), MySQL(메타 데이터 및 Rule 저장),  Zookeeper(상태 관찰 및 전달), Deep Storage(HDFS, S3등 외부 저장소, Segment 저장)의 외부 모듈이 필요하다.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/images/druid/druid architecture.png&quot; alt=&quot;드루이드 아키텍쳐&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/druid/druid architecture.png&quot; alt=&quot;드루이드 아키텍쳐&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
 
 &lt;h5 id=&quot;real-time-nodes&quot;&gt;Real-time nodes&lt;/h5&gt;
 &lt;p&gt;스트림 데이터를 &lt;strong&gt;즉시&lt;/strong&gt; 저장 및 색인하여 리얼타림 쿼리를 저원하도록 하며 다른 노드들과 coordination을 위해서 zookeeper에 현재 상태를 전달한다.
@@ -81,10 +207,10 @@ open source, distributed, column-oriented, real-time analytical data store를 �
   &lt;li&gt;immutable data : column oriented&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/images/druid/real time node 1.png&quot; alt=&quot;리얼타임 노드 1&quot; width=&quot;600&quot; /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/druid/real time node 1.png&quot; alt=&quot;리얼타임 노드 1&quot; width=&quot;600&quot; class=&quot;center-image&quot; /&gt;
 flush된 불변 데이터는 os의 off heap 영역에 로드하여 쿼리 가능한 상태를 유지한다. real time node는 주기적으로 불변데이터를 머지하여 segment라는 data block를 만들어 deep storage에 전달한다.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/images/druid/real time node 2.png&quot; alt=&quot;리얼타임 노드 2&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/druid/real time node 2.png&quot; alt=&quot;리얼타임 노드 2&quot; width=&quot;600&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;노드 시작 및 주키퍼에 13:00 ~ 14:00 데이터를 담당한다고 알림&lt;/li&gt;
   &lt;li&gt;13:00 ~ 14:00사이의 데이터를 매 10분마다 불변데이터로 저장&lt;/li&gt;
@@ -105,7 +231,7 @@ flush된 불변 데이터는 os의 off heap 영역에 로드하여 쿼리 가능
 
 &lt;h5 id=&quot;historical-nodes&quot;&gt;Historical Nodes&lt;/h5&gt;
 &lt;p&gt;real-time node에서 만든 세그먼트를 로드 및 서빙
-&lt;img src=&quot;/assets/images/druid/historical node.png&quot; alt=&quot;historical node&quot; width=&quot;500&quot; /&gt;
+&lt;img src=&quot;/assets/images/druid/historical node.png&quot; alt=&quot;historical node&quot; width=&quot;500&quot; class=&quot;center-image&quot; /&gt;
 shared nothing architecture로 노드들 사이에 contention이 없으며,  단순 load, drop, serve만 담당하며 주키퍼를 이용해 상태를 관리한다.  불변 데이터를 다루기 때문에 read consistency를 지원함&lt;/p&gt;
 &lt;h6 id=&quot;tiers&quot;&gt;Tiers&lt;/h6&gt;
 &lt;p&gt;우선순위&lt;/p&gt;

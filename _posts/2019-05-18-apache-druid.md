@@ -35,7 +35,7 @@ open source, distributed, column-oriented, real-time analytical data store를 �
 드루이드는 대용량의 이벤트(로그)를 저장하고 빠르게 탐색 및 분석할수 있도록 개발되었다. (OLAP 처럼)
 
 샘플 데이터 
-<img src="/assets/images/druid/druid data table.png" alt="드루이드 저장 데이터">
+<img src="/assets/images/druid/druid data table.png" alt="드루이드 저장 데이터">{: .center-image}
 드루이드의 데이터는 아래와 같이 3가지로 이루어져 있다. 
   1. timestamp : 이벤트가 일어난 시간. 
   1. dimension (page, username, gender, city) 
@@ -56,7 +56,7 @@ open source, distributed, column-oriented, real-time analytical data store를 �
 드루이드는 아래와 같이 서로 다른 역할을 하는 노드들로 이루어져 있으며 각 노드들간의 상호작용은 거의 없기때문에 다른 노드가 죽어도 전체 클러스터에 끼치는 영향은 미미하다.   
 드루이드 노드 이외 Kafka(실시간 데이터 입력), MySQL(메타 데이터 및 Rule 저장),  Zookeeper(상태 관찰 및 전달), Deep Storage(HDFS, S3등 외부 저장소, Segment 저장)의 외부 모듈이 필요하다.
 
-<img src="/assets/images/druid/druid architecture.png" alt="드루이드 아키텍쳐">
+<img src="/assets/images/druid/druid architecture.png" alt="드루이드 아키텍쳐">{: .center-image}
 
 ##### Real-time nodes
 스트림 데이터를 **즉시** 저장 및 색인하여 리얼타림 쿼리를 저원하도록 하며 다른 노드들과 coordination을 위해서 zookeeper에 현재 상태를 전달한다.
@@ -64,10 +64,10 @@ open source, distributed, column-oriented, real-time analytical data store를 �
   * memeory data : row oriented
   * immutable data : column oriented        
 
-<img src="/assets/images/druid/real time node 1.png" alt="리얼타임 노드 1" width="600">
+<img src="/assets/images/druid/real time node 1.png" alt="리얼타임 노드 1" width="600">{: .center-image}
 flush된 불변 데이터는 os의 off heap 영역에 로드하여 쿼리 가능한 상태를 유지한다. real time node는 주기적으로 불변데이터를 머지하여 segment라는 data block를 만들어 deep storage에 전달한다.
 
-<img src="/assets/images/druid/real time node 2.png" alt="리얼타임 노드 2" width="600">
+<img src="/assets/images/druid/real time node 2.png" alt="리얼타임 노드 2" width="600">{: .center-image}
   1. 노드 시작 및 주키퍼에 13:00 ~ 14:00 데이터를 담당한다고 알림
   2. 13:00 ~ 14:00사이의 데이터를 매 10분마다 불변데이터로 저장
   3. 14시 넘어서(약 10분 대기) 13:00 ~ 14:00 데이터 병합 및 deep storage로 전송
@@ -81,7 +81,7 @@ flush된 불변 데이터는 os의 off heap 영역에 로드하여 쿼리 가능
 
 ##### Historical Nodes
 real-time node에서 만든 세그먼트를 로드 및 서빙
-<img src="/assets/images/druid/historical node.png" alt="historical node" width="500">
+<img src="/assets/images/druid/historical node.png" alt="historical node" width="500">{: .center-image}
 shared nothing architecture로 노드들 사이에 contention이 없으며,  단순 load, drop, serve만 담당하며 주키퍼를 이용해 상태를 관리한다.  불변 데이터를 다루기 때문에 read consistency를 지원함 
 ###### Tiers
 우선순위
