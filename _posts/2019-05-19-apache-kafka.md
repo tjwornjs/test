@@ -58,9 +58,9 @@ Pull 모델 장점
 * 브로커(broker) : 카프카 서버, 프로듀서가 전송한 메세지를 저장하고 컨슈머에 메세지를 전송한다.
 * 컨슈머(consumer) : 브로커의 메세지를 소비하는 프로그램.
 
-### Efficiency on a Single Partition
+#### Efficiency on a Single Partition
 카프카를 효율적인 시스템으로 만들기 위해 아래와 같이 구현함
-#### Simple storage 
+##### Simple storage 
 * 프로듀서가 메세지를 전송하면 브로커는 마지막 세그먼트 파일에 메세지를 추가해 저장한다. 
 * 성능 하락을 막기 위해  설정된 갯수 만큼의 메세지가 들어오거나 일정 시간이 흐른 후 세그먼트 파일을 디스크로 저장한다.
 	* 메세지는 디스크에 저장된후 컨슈머에 노출됨
@@ -74,7 +74,7 @@ Pull 모델 장점
 
 <img src="/assets/images/kafka/kafka storage.png" alt="카프카 스토리지" width="600">{: .center-image}
 
-#### Efficient transfer
+##### Efficient transfer
 카프카는 브로커는 읽어온 데이터를 개싱하지 않고 os의 페이지 캐시를 이용한다.
 * java heap, os cache에 이중으로 저장되는걸 막는다.
 * os에 읽어온 데이터 캐싱되어 있기 때문에 브로커 서버가 재시작시 warm up 시간 단축.
@@ -90,3 +90,48 @@ Pull 모델 장점
 
 매번 2, 3번의 데이터 복사를 하기 때문에 성능 하락이 생길수 있다. 카프카는 zero-copy 기법을 이용해 2,3번의 복사를 없애고 성능을 향상 시켰다.
 <img src="/assets/images/kafka/kafka copy x.gif" alt="zero copy" width="400">{: .center-image}
+
+##### Stateless broker
+카프카는 다른 메시징 시스템과는 다르게 카프카는 각 컨슈머가 데이터를 어디까지 읽어 갔는지 관리 하지 않는다.
+* 브로커의 기능을 단순화 하여 오버헤드를 줄임
+
+따라서 이미 읽어간 데이터를 언제 지울지 결정하기 어렵다.
+* Time based SLA를 이용해 일정 기간이 지난 데이터를 삭제한다(기본 1주)
+	* 컨슈머는 실시간 또는 짧은 기간 이내 데이터 소비를 마친다. - 실상 1주일 전 데이터를 읽어갈 경우는 거의 없다.
+	* 디스크 용량만 충분하다면 브로커에 저장된 데이터 크기에 따른 성능 저하가 미미하기 때문에 1주일치 데이터 저장도 가능함
+
+이에 따른 이점은
+* 컨슈머 실패시 지정된 오프셋부터 재시작 가능하다. pull 모델의 이점
+
+#### Distributed Coordination
+각각의 프로듀서는 임의로 선택된 파티션 또는 파티셔닝 함수에 의해 결정된 파티션으로 메세지를 전달한다.    
+컨슈머 그룹 
+ * 토픽을 소비하는 하나 이상의 컨슈머로 구성됨
+ * 서로 다른 그룹은 각각 독립적으로 메세지를 소비하기 때문에 coordination이 필요 없다.
+ <img src="/assets/images/kafka/consumer group.png" alt="consumer group" width="400">{: .center-image}
+
+파티션 : 토픽내 병철 처리의 가장 작은 단위
+* 파티션 데이터는 하나의 컨슈머에 의해서만 소비됨
+* 하나의 파티션을 어러 컨슈머가 소비하면 이를 관리하기 위한 오버헤드가 발생한다.
+* 로드 밸런싱이 잘되도록 하기 위해선 파티션의 숫자가 컨슈머의 숫자의 n배수 여야 한다.
+
+주키퍼를 통해 고가용성(HA)를 지원한다. – 시스템 단순화
+* 추가 문서에서 작성
+
+#### Delivery Guarantees
+카프카는 at-least-once 전송을 보장함
+* exactly-once는 two phase commit이 필요하며 카프카가 대상으로 하는 프로그램이 아니다.
+* 보통은 각 컨슈머에 1번만 전달이 되지만 컨슈머가 정상 종료되지 않으면 다른 컨슈머가 해당 컨슈머의 파티션 데이터를 소비하게 되고 중복 처리할 수 있다.
+* 만약 메세지 중복이 중요한 이슈가 되면 컨슈머에서 자체적인 중복 방지 로직을 추가해야 한다.
+
+파티션에 대해서만 순서를 보장함. 서로 다른 파티션에서 데이터를 읽어올때는 순서를 보장할수 없다.   
+로그가 잘못쓰여진 경우를 대비해 각 메세지에 CRC 저장   
+브로커가 죽으면 브로커에 저장된 메세지는 사용 불가   
+* 이제는 **replication**이 있기 때문에  문제 없다. 초기에는 복제가 없었던 듯
+
+#### Kafka Usage at LinkedIn
+딱히 특별한건 없고 직렬화를 위해 스키마를 지원하는 Avro를 선택했다.  [schema-registry](https://docs.confluent.io/current/schema-registry/index.html)를 이용해 Avro에 저장된  id에 해당하는 스키마를 매핑했다고 한다. schema registry는 다른 포스팅에서 다룰 예정
+
+
+#### Experimental Results
+R/W의 성능이 active mq, rabbit mq에 비해 월등히 좋은 결과를 보여준다. 이미 2개의 mq는 많이 사용하지 않고 오래전 결과이기 때문에 따로 정리할 필요는 없을 듯. 성능이 빠른 이유는 위에 설명한 내용과 비슷하다.
