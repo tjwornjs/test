@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kafka 데이터 플랫폼의 최강자 정리</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+  <!-- Font -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href='//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet">
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed for 그저그런 공돌이" href="/feed.xml" />
+  <!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Kafka 데이터 플랫폼의 최강자 정리 | 그저그런 공돌이</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Kafka 데이터 플랫폼의 최강자 정리" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="회사에서 실시간 데이터 처리를 위해 카프카를 사용하고 있어서 기본 개념정리를 위해 한번 읽어 봤다. 운영 팀이 따로 있기 때문에 설치 및 운영은 그냥 빼고 정리함." />
+<meta property="og:description" content="회사에서 실시간 데이터 처리를 위해 카프카를 사용하고 있어서 기본 개념정리를 위해 한번 읽어 봤다. 운영 팀이 따로 있기 때문에 설치 및 운영은 그냥 빼고 정리함." />
+<link rel="canonical" href="http://localhost:4000/2019-05-22/kafka/" />
+<meta property="og:url" content="http://localhost:4000/2019-05-22/kafka/" />
+<meta property="og:site_name" content="그저그런 공돌이" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-05-22T00:00:00+09:00" />
+<script type="application/ld+json">
+{"description":"회사에서 실시간 데이터 처리를 위해 카프카를 사용하고 있어서 기본 개념정리를 위해 한번 읽어 봤다. 운영 팀이 따로 있기 때문에 설치 및 운영은 그냥 빼고 정리함.","headline":"Kafka 데이터 플랫폼의 최강자 정리","dateModified":"2019-05-22T00:00:00+09:00","datePublished":"2019-05-22T00:00:00+09:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019-05-22/kafka/"},"url":"http://localhost:4000/2019-05-22/kafka/","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+
+  <!-- Google Analytics -->
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', '', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+
+
+</head>
+
+<body>
+  <div class="content-container">
+    <header>
+  <div class="header-small">
+    <a href="http://localhost:4000">그저그런 공돌이</a>
+  </div>
+</header>
+<div class="post">
+  <div class="post-title">Kafka 데이터 플랫폼의 최강자 정리</div>
+  <span class="post-date">
+    <time>22 May 2019</time>
+  </span>
+  <div class="post-tag">
+    <ul>
+      
+    </ul>
+  </div>
+
+  <p>회사에서 실시간 데이터 처리를 위해 카프카를 사용하고 있어서 기본 개념정리를 위해 한번 읽어 봤다. 운영 팀이 따로 있기 때문에 설치 및 운영은 그냥 빼고 정리함.</p>
+
+<h4 id="1장-리뷰">1장 리뷰</h4>
+<p>링크드인에서 카프카를 만든 이유가 나온다. 기본적으로 서비스를 운영하게 되면 데이터를 생산하는 프로세스가 있고 데이터를 소비하는 프로세스가 있는데 처음 한두개 프로세스가 돌아갈때는 굳이 카프카를 사용할 필요가 없지만 어느정도 큰 서비스를 운영하게 되다 보면 답이 없다. 그 예로 링크드인에서 카프카를 사용 하기 전과 후의 시스템(<a href="https://www.confluent.io/blog/event-streaming-platform-1">원문</a>)을 보여주는 데 보자 마자 이해가 갈정도로 시스템이 단순해 진다.</p>
+
+<p class="center"><img src="/assets/images/kafka_book/dataflow 1.png" alt="카프카 도입 전" width="600" class="center-image" />
+<sup>카프카 도입 전 </sup></p>
+
+<p class="center"><img src="/assets/images/kafka_book/dataflow 2.png" alt="카프카 도입 후" width="600" class="center-image" />
+<sup>카프카 도입 후</sup></p>
+
+<p>간단하게</p>
+<ol>
+  <li>프로듀서는 단순히 카프카로 데이터를 보내기만 하면 된다. db, monitoring 등의 서버의 주소, 정상 작동 여부 등을 체크할 필요가 없다.</li>
+  <li>프로듀서 또는 컨슈머 프로세스가 정상 동작을 하지 않으면 연결된 다른 프로세스까지 같이 영향을 받는다.</li>
+  <li>기타 다른내용(확장성, 성능)은 카프카 논문 정리에 포스팅한 내용과 별반 다르지 않다.</li>
+</ol>
+
+<h4 id="3장-리뷰">3장 리뷰</h4>
+<p>2장 설치는 담당이 아니라서 그냥 패스 함. 딱히 별다른 내용도 없다. 뭔가 많은 양을 써두긴 했지만 주로 논문 정리에서 다뤘던 내용과 거의 비슷하다. 간단하게만 정리함</p>
+<h5 id="페이지-캐시-사용">페이지 캐시 사용</h5>
+<p>카프카의 주요 워크로드는 <strong>sequential r/w</strong> 이다. 프로듀서가 먼저 메세지를 쓰고 컨슈머가 읽어 가는 순서로 동작을 하며 방금 저장된 메세지는 os 페이지 캐시에 저장이 되어 컨슈머가 읽어갈때는 실제 스토리지를 읽을 필요없이 메모리에 캐싱된 메세지를 읽어가면 된다. 컨슈머가 N개 일때도 동일하게 동작을 하며 이전 메세지를 읽어 올때도 디스크에 순차적으로 쓰여져 있기 때문에 os의 read-ahead 방식에 의해 페이지 단위로 미리 데이터를 읽어 오기 때문에 ssd가 아닌 hdd에서도 성능 하락이 미미하다. 아래 그림은 실제로 hdd의 순차 읽기 속도는 메모리나 ssd에 비해 느리지 않은 걸 보여준다. <a href="https://queue.acm.org/detail.cfm?id=1563874">출처</a></p>
+
+<p class="center"><img src="/assets/images/kafka_book/disk speed.jpg" alt="디스크 읽기 속도" width="600" class="center-image" />
+<sup>데이터 읽기 속도</sup></p>
+
+<h5 id="적절한-파티션-설정">적절한 파티션 설정</h5>
+<p>카프카의 토픽은 N개의 파티션으로 이루어져 있고 일반적으로 파티션의 갯수를 늘리면 전송 속도가 올라간다. 하지만 무분별하게 파티션의 갯수를 늘리면</p>
+<ol>
+  <li>파일 핸들러 낭비
+    <ul>
+      <li>파티션 하나당 2개의 파일(인덱스, 데이터)가 생성이 되고 os(주로 리눅스)에서 할당해야 할 파일 핸들러가 늘어나서 시스템에 부하를 준다.</li>
+      <li>좀 억지 스럽다. 하나의 브로커에 파티션이 수 천개 띄우는 건 거의 없는 경우일거 같다.</li>
+    </ul>
+  </li>
+  <li>장애 복구 시간 증가
+    <ul>
+      <li>브로커가 다운되면 해당 브로커에 저장된 파티션중 리더가 있으면 해당 파티션은 장애가 발생한다. 컨트롤러 노드가 바로 다른 브로커의 팔로워 파티션을 리더로 승격시키겠지만 승격시킬 파티션이 많으면 그많큼 시간이 오래 걸린다.</li>
+    </ul>
+  </li>
+  <li>토픽내 파티션의 갯수는 자유롭게 늘릴수 있지만 줄일수는 없기 때문에 처음에는 작은 수의 파티션으로 운영 하다가 점차 늘려가면서 적절한 파티션의 갯수를 정하는게 좋다고 함</li>
+</ol>
+
+<h5 id="isrin-sync-replica">ISR(In Sync Replica)</h5>
+
+
+  <!-- Disqus -->
+  
+
+</div>
+
+
+    <!-- Documents about icons are here: http://fontawesome.io/icons/ -->
+<div class="footer">
+  <hr />
+  <div class="footer-link">
+    
+	
+	
+	
+	
+
+    
+
+    
+    <a href="https://github.com/tjwornjs"><i class="fa fa-github" aria-hidden="true"></i></a>
+    
+	
+	
+	
+	
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+
+    
+
+    
+
+    
+    <a href="mailto:tjwornjs@gmail.com"><i class="fa fa-envelope" aria-hidden="true"></i></a>
+    
+
+  </div>
+  © 2019 tjwornjs. All rights reserved.
+</div>
+
+  </div>
+</body>
+</html>
