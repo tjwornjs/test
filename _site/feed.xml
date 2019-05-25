@@ -6,6 +6,91 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>OLAP 정리</title>
+        <description>&lt;h4 id=&quot;정의&quot;&gt;정의&lt;/h4&gt;
+&lt;p&gt;인터넷을 찾아보면 96년도에 아래와 같은 정의된 연구 논문이 나온것 같은데 실제 논문은 확인을 하지 못했다.  &lt;br /&gt;
+OLAP(OnLine Analytical Processing) : ‘&lt;strong&gt;최종 사용자가 다차원 정보에 직접 접근하여 대화식으로 정보를 분석하고 의사결정을 활용하는 과정&lt;/strong&gt;‘(조재희/박성진, 1996) &lt;br /&gt;
+이라고 하며 대략적인 특징은 아래 표와 같다.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;특징&lt;/th&gt;
+      &lt;th&gt;주요 개념&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;다차원성&lt;/td&gt;
+      &lt;td&gt;사용자들이 실제적인 차원에서 정보를 분석   (Multidimensional View of Data)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;직접 접근&lt;/td&gt;
+      &lt;td&gt;최종사용자들이 전산부서와 같은 정보 매개자를 거치지 않고 자신이 원하는 정보에 직접 접근&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;대화식 분석&lt;/td&gt;
+      &lt;td&gt;시스템과 상호작용을 통해 정보를 분석하고   원하는 정보를 얻을 때까지 계속해서 분석을 수행함(Drilling)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;의사 결정용&lt;/td&gt;
+      &lt;td&gt;기업의 전략적 방향설정 및 의사결정에 활용&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;style&gt;
+  th, td {
+			border: 1px solid #444444;
+  }
+&lt;/style&gt;
+
+&lt;h4 id=&quot;cube&quot;&gt;Cube&lt;/h4&gt;
+&lt;p&gt;OLAP 에서 정의한 다양한 특징을 제공하기 위한 다차원의 정보가 저장된 데이터 구조로써 빠른 데이터 분석을 위해 최적화 된 자료 구조
+아래와 같이 4가지 기능을 제공한다.&lt;/p&gt;
+
+&lt;h5 id=&quot;roll-up&quot;&gt;Roll up&lt;/h5&gt;
+&lt;p&gt;consolidation(통합), aggregation(집계)를 통해 저장된 데이터의 단위를 변경하거나(도시 -&amp;gt; 국가) 범위를 변경해(이벤트 마다 저장 -&amp;gt; 일정 기간의 이벤트 저장) 요약된 형태로 변경하는 것
+&lt;img src=&quot;/assets/images/olap/olap_roll_up.png&quot; alt=&quot;roll up&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;(New Jersery, Los Angeles) -&amp;gt; U.S.A,  (Perth, Sydney) -&amp;gt; Australia로 도시에서 국가로 저장하는 단위가 바뀌었다. 각 국가별 상황을 알수 있다.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;drill-down&quot;&gt;Drill down&lt;/h5&gt;
+&lt;p&gt;Roll up과는 반대로 데이터를 좀더 세부적인 데이터로 접근하는 것
+&lt;img src=&quot;/assets/images/olap/olap_drill_down.png&quot; alt=&quot;drill down&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;분기별 분석에서 월별 분석으로 바뀌었다.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;slicedice&quot;&gt;Slice/Dice&lt;/h5&gt;
+&lt;p&gt;Slice : 1개의 차원을 선택해 sub cube를 생성
+&lt;img src=&quot;/assets/images/olap/olap_slice.png&quot; alt=&quot;slice&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;time dimension에서 1분기 데이터만 선택&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Dice : Slice와 비슷하나 2개 이상의 dimension을 선택해 sub cube 생성
+&lt;img src=&quot;/assets/images/olap/olap_dice.png&quot; alt=&quot;dice&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;time dimension : 1, 2 분기 선택&lt;/li&gt;
+  &lt;li&gt;item dimension : book, clothes 선택&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;pivot&quot;&gt;Pivot&lt;/h5&gt;
+&lt;p&gt;cube의 축을 바꿔(x -&amp;gt; y, y -&amp;gt; x, z-&amp;gt;x 등) 볼수 있는 기능  - 어디다 쓰는지 잘 모르겠다.
+&lt;img src=&quot;/assets/images/olap/olap_pivot.png&quot; alt=&quot;pivot&quot; width=&quot;400&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;참고-문헌&quot;&gt;참고 문헌&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.guru99.com/online-analytical-processing.html&quot;&gt;https://www.guru99.com/online-analytical-processing.html&lt;/a&gt;
+&lt;a href=&quot;https://www.slideshare.net/jerryjung7/data-analytics-with-druid&quot;&gt;https://www.slideshare.net/jerryjung7/data-analytics-with-druid&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Fri, 24 May 2019 14:22:11 +0900</pubDate>
+        <link>http://localhost:4000/2019-05-24/olap/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019-05-24/olap/</guid>
+      </item>
+    
+      <item>
         <title>Kafka 데이터 플랫폼의 최강자 정리</title>
         <description>&lt;p&gt;회사에서 실시간 데이터 처리를 위해 카프카를 사용하고 있어서 기본 개념정리를 위해 한번 읽어 봤다. 운영 팀이 따로 있기 때문에 설치 및 운영은 그냥 빼고 정리함.&lt;/p&gt;
 

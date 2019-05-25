@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OLAP 정리</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+  <!-- Font -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href='//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet">
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed for 그저그런 공돌이" href="/feed.xml" />
+  <!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>OLAP 정리 | 그저그런 공돌이</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="OLAP 정리" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="OLAP 정리" />
+<meta property="og:description" content="OLAP 정리" />
+<link rel="canonical" href="http://localhost:4000/2019-05-24/olap/" />
+<meta property="og:url" content="http://localhost:4000/2019-05-24/olap/" />
+<meta property="og:site_name" content="그저그런 공돌이" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-05-24T14:22:11+09:00" />
+<script type="application/ld+json">
+{"description":"OLAP 정리","headline":"OLAP 정리","dateModified":"2019-05-24T14:22:11+09:00","datePublished":"2019-05-24T14:22:11+09:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019-05-24/olap/"},"url":"http://localhost:4000/2019-05-24/olap/","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+
+  <!-- Google Analytics -->
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', '', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+
+
+</head>
+
+<body>
+  <div class="content-container">
+    <header>
+  <div class="header-small">
+    <a href="http://localhost:4000">그저그런 공돌이</a>
+  </div>
+</header>
+<div class="post">
+  <div class="post-title">OLAP 정리</div>
+  <span class="post-date">
+    <time>24 May 2019</time>
+  </span>
+  <div class="post-tag">
+    <ul>
+      
+      <li>
+        <a href="http://localhost:4000/tags#OLAP">
+          <span>OLAP</span>
+        </a>
+      </li>
+      
+      
+    </ul>
+  </div>
+
+  <h4 id="정의">정의</h4>
+<p>인터넷을 찾아보면 96년도에 아래와 같은 정의된 연구 논문이 나온것 같은데 실제 논문은 확인을 하지 못했다.  <br />
+OLAP(OnLine Analytical Processing) : ‘<strong>최종 사용자가 다차원 정보에 직접 접근하여 대화식으로 정보를 분석하고 의사결정을 활용하는 과정</strong>‘(조재희/박성진, 1996) <br />
+이라고 하며 대략적인 특징은 아래 표와 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>특징</th>
+      <th>주요 개념</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>다차원성</td>
+      <td>사용자들이 실제적인 차원에서 정보를 분석   (Multidimensional View of Data)</td>
+    </tr>
+    <tr>
+      <td>직접 접근</td>
+      <td>최종사용자들이 전산부서와 같은 정보 매개자를 거치지 않고 자신이 원하는 정보에 직접 접근</td>
+    </tr>
+    <tr>
+      <td>대화식 분석</td>
+      <td>시스템과 상호작용을 통해 정보를 분석하고   원하는 정보를 얻을 때까지 계속해서 분석을 수행함(Drilling)</td>
+    </tr>
+    <tr>
+      <td>의사 결정용</td>
+      <td>기업의 전략적 방향설정 및 의사결정에 활용</td>
+    </tr>
+  </tbody>
+</table>
+
+<style>
+  th, td {
+			border: 1px solid #444444;
+  }
+</style>
+
+<h4 id="cube">Cube</h4>
+<p>OLAP 에서 정의한 다양한 특징을 제공하기 위한 다차원의 정보가 저장된 데이터 구조로써 빠른 데이터 분석을 위해 최적화 된 자료 구조
+아래와 같이 4가지 기능을 제공한다.</p>
+
+<h5 id="roll-up">Roll up</h5>
+<p>consolidation(통합), aggregation(집계)를 통해 저장된 데이터의 단위를 변경하거나(도시 -&gt; 국가) 범위를 변경해(이벤트 마다 저장 -&gt; 일정 기간의 이벤트 저장) 요약된 형태로 변경하는 것
+<img src="/assets/images/olap/olap_roll_up.png" alt="roll up" width="400" class="center-image" /></p>
+<ul>
+  <li>(New Jersery, Los Angeles) -&gt; U.S.A,  (Perth, Sydney) -&gt; Australia로 도시에서 국가로 저장하는 단위가 바뀌었다. 각 국가별 상황을 알수 있다.</li>
+</ul>
+
+<h5 id="drill-down">Drill down</h5>
+<p>Roll up과는 반대로 데이터를 좀더 세부적인 데이터로 접근하는 것
+<img src="/assets/images/olap/olap_drill_down.png" alt="drill down" width="400" class="center-image" /></p>
+<ul>
+  <li>분기별 분석에서 월별 분석으로 바뀌었다.</li>
+</ul>
+
+<h5 id="slicedice">Slice/Dice</h5>
+<p>Slice : 1개의 차원을 선택해 sub cube를 생성
+<img src="/assets/images/olap/olap_slice.png" alt="slice" width="400" class="center-image" /></p>
+<ul>
+  <li>time dimension에서 1분기 데이터만 선택</li>
+</ul>
+
+<p>Dice : Slice와 비슷하나 2개 이상의 dimension을 선택해 sub cube 생성
+<img src="/assets/images/olap/olap_dice.png" alt="dice" width="400" class="center-image" /></p>
+<ul>
+  <li>time dimension : 1, 2 분기 선택</li>
+  <li>item dimension : book, clothes 선택</li>
+</ul>
+
+<h5 id="pivot">Pivot</h5>
+<p>cube의 축을 바꿔(x -&gt; y, y -&gt; x, z-&gt;x 등) 볼수 있는 기능  - 어디다 쓰는지 잘 모르겠다.
+<img src="/assets/images/olap/olap_pivot.png" alt="pivot" width="400" class="center-image" /></p>
+
+<h4 id="참고-문헌">참고 문헌</h4>
+<p><a href="https://www.guru99.com/online-analytical-processing.html">https://www.guru99.com/online-analytical-processing.html</a>
+<a href="https://www.slideshare.net/jerryjung7/data-analytics-with-druid">https://www.slideshare.net/jerryjung7/data-analytics-with-druid</a></p>
+
+
+  <!-- Disqus -->
+  
+
+</div>
+
+
+    <!-- Documents about icons are here: http://fontawesome.io/icons/ -->
+<div class="footer">
+  <hr />
+  <div class="footer-link">
+    
+	
+	
+	
+	
+
+    
+
+    
+    <a href="https://github.com/tjwornjs"><i class="fa fa-github" aria-hidden="true"></i></a>
+    
+	
+	
+	
+	
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+
+    
+
+    
+
+    
+    <a href="mailto:tjwornjs@gmail.com"><i class="fa fa-envelope" aria-hidden="true"></i></a>
+    
+
+  </div>
+  © 2019 tjwornjs. All rights reserved.
+</div>
+
+  </div>
+</body>
+</html>
