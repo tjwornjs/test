@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RDD vs Dataframe vs Dataset</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+  <!-- Font -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href='//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css' rel='stylesheet' type='text/css'>
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet">
+
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed for 그저그런 공돌이" href="/feed.xml" />
+  <!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>RDD vs Dataframe vs Dataset | 그저그런 공돌이</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="RDD vs Dataframe vs Dataset" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="spark 분석" />
+<meta property="og:description" content="spark 분석" />
+<link rel="canonical" href="http://localhost:4000/2019-05-25/rdd-vs-dataframe-vs-dataset/" />
+<meta property="og:url" content="http://localhost:4000/2019-05-25/rdd-vs-dataframe-vs-dataset/" />
+<meta property="og:site_name" content="그저그런 공돌이" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-05-25T18:00:00+09:00" />
+<script type="application/ld+json">
+{"description":"spark 분석","headline":"RDD vs Dataframe vs Dataset","dateModified":"2019-05-25T18:00:00+09:00","datePublished":"2019-05-25T18:00:00+09:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019-05-25/rdd-vs-dataframe-vs-dataset/"},"url":"http://localhost:4000/2019-05-25/rdd-vs-dataframe-vs-dataset/","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+
+  <!-- Google Analytics -->
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', '', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+
+
+</head>
+
+<body>
+  <div class="content-container">
+    <header>
+  <div class="header-small">
+    <a href="http://localhost:4000">그저그런 공돌이</a>
+  </div>
+</header>
+<div class="post">
+  <div class="post-title">RDD vs Dataframe vs Dataset</div>
+  <span class="post-date">
+    <time>25 May 2019</time>
+  </span>
+  <div class="post-tag">
+    <ul>
+      
+      <li>
+        <a href="http://localhost:4000/tags#spark">
+          <span>spark</span>
+        </a>
+      </li>
+      
+      
+    </ul>
+  </div>
+
+  <p>데이터 브릭스의 포스팅 정리  <a href="https://databricks.com/blog/2016/07/14/a-tale-of-three-apache-spark-apis-rdds-dataframes-and-datasets.html">databricks</a></p>
+
+<h4 id="rdd">RDD</h4>
+<p>여러 노드에 분산 저장되는 변경 불가능한 데이터의 집합으로 각각의 RDD는 여러개의 파티션으로 분리 되어 있다.
+Action, transformation 할수 있는 2개의 low-level api 를 제공 한다.</p>
+<ol>
+  <li>Action : RDD 값을 기반으로 결과(저장, count 등등 )를 생성해 내는 오퍼레이션</li>
+  <li>Transformation : 기존의 RDD를 새로운 RDD 로 변환 시키는 것 – 액션이 있기전까지는 동작 안한다.
+<img src="/assets/images/rdd_dataframe_dataset/rdd.png" alt="rdd api" width="400" class="center-image" /></li>
+</ol>
+
+<p>RDD를 사용하는 경우</p>
+<ul>
+  <li>low-level의 데이터 변환 작업이 필요 할때</li>
+  <li>unstructured data를 다룰 때 (media, text stream)</li>
+</ul>
+
+<p>결론은 RDD가 없어 지진 않을 거지만 dataframe, dataset 또한 RDD 기반으로 만들어져 있고 간단한 api를 통해 변환이 가능하며 성능또한 좋다. 가능하면 dataset을 사용하자.</p>
+
+<h4 id="dataframe">Dataframe</h4>
+<p>RDD와 마찬가지로 분산 불변 컬렉션이며 RDB의 테이블 처럼 row, column으로 이루어져 있다. 대용량의 데이터를 좀더 쉽게 사용할수 있도록 디자인 되어 있고, 개발자가 분산된 데이터에 구조(스키마)를 적용 할수 있어서 더 높은 수준의 추상화가 가능함. spark 2.0부턴 dataframe, dataset api가 통합 되었고 이로 인해 개발자들은 새로운 api를 학습 하지 않아도 dataset api를 사용할수 있게 되었다.
+<img src="/assets/images/rdd_dataframe_dataset/dataset_dataframe.png" alt="dataframe dataset" width="400" class="center-image" /></p>
+
+<h4 id="dataset">Dataset</h4>
+<p>dataframe은 dataset의 한 부분으로 타입이 정해지지 않은 row로 이루어진 데이터로 생각하면 될거 같다. dataframe에 case class로 타입을 정의하게 되면 dataset.  type이 정해져 있기 때문에 type-safe api로 부르는거 같다.
+이점</p>
+<ol>
+  <li>Run time type safe
+    <ul>
+      <li>Spark sql은 런타임까지 문법 에러를 확인하기 힘들지만 dataset, frame에서는 컴파일 타임에 에러를 확인할수 있고</li>
+      <li>dataset api는 모두 람다 및 jvm 객체로 표현 되기 때문에 모든 type parameter의 미스 매치는 컴파일 타임에 확인이 가능하다.
+<img src="/assets/images/rdd_dataframe_dataset/error check.png" alt="error check" width="500" /></li>
+    </ul>
+  </li>
+  <li>높은 수준의 추상화 및 custom view 제공</li>
+  <li>사용하기 쉽다.</li>
+  <li>성능 및 최적화
+    <ul>
+      <li>dataframe, dataset는 모두 spark sql 엔진 위에서 돌아가며 catalyst를 사용하여 최적화된 query plan를 생성해 효율적으로 동작한다.</li>
+      <li>spark은 노드간 데이터를 주고 받는 게 필수 인데 dataset는 데이터의 형식이 정해져 있기 때문에 tungsten 을 사용해 효율적으로 serialize/deserialize할수 있다.
+<img src="/assets/images/rdd_dataframe_dataset/Performance and Optimization.png" alt="Performance and Optimization" width="500" /></li>
+    </ul>
+  </li>
+</ol>
+
+<p>결론은 정말 RDD말로 방법이 없을때를 제외 하곤 dataset를 사용하자!</p>
+
+
+  <!-- Disqus -->
+  
+
+</div>
+
+
+    <!-- Documents about icons are here: http://fontawesome.io/icons/ -->
+<div class="footer">
+  <hr />
+  <div class="footer-link">
+    
+	
+	
+	
+	
+
+    
+
+    
+    <a href="https://github.com/tjwornjs"><i class="fa fa-github" aria-hidden="true"></i></a>
+    
+	
+	
+	
+	
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+
+    
+
+    
+
+    
+    <a href="mailto:tjwornjs@gmail.com"><i class="fa fa-envelope" aria-hidden="true"></i></a>
+    
+
+  </div>
+  © 2019 tjwornjs. All rights reserved.
+</div>
+
+  </div>
+</body>
+</html>
